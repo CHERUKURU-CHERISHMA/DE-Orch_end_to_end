@@ -1,0 +1,120 @@
+{
+	"name": "C2Psrc",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "storagelinkservice",
+			"type": "LinkedServiceReference"
+		},
+		"parameters": {
+			"Table_Names": {
+				"type": "string"
+			},
+			"container_name": {
+				"type": "string"
+			}
+		},
+		"annotations": [],
+		"type": "Parquet",
+		"typeProperties": {
+			"location": {
+				"type": "AzureBlobFSLocation",
+				"folderPath": {
+					"value": "@concat('/process_layer/',dataset().Table_Names)",
+					"type": "Expression"
+				},
+				"fileSystem": {
+					"value": "@dataset().container_name",
+					"type": "Expression"
+				}
+			},
+			"compressionCodec": "snappy"
+		},
+		"schema": [
+			{
+				"name": "MATERIAL_DOC_NO",
+				"type": "INT32"
+			},
+			{
+				"name": "MATERIAL_DOC_YEAR",
+				"type": "INT32"
+			},
+			{
+				"name": "MATERIAL_DOC_ITEM",
+				"type": "INT32"
+			},
+			{
+				"name": "MOVEMENT_TYPE",
+				"type": "INT32"
+			},
+			{
+				"name": "MATERIAL_NO",
+				"type": "UTF8"
+			},
+			{
+				"name": "BATCH_ID",
+				"type": "UTF8"
+			},
+			{
+				"name": "QUANTITY",
+				"type": "FLOAT"
+			},
+			{
+				"name": "UNIT_OF_ENTRY",
+				"type": "UTF8"
+			},
+			{
+				"name": "AMOUNT_IN_LC",
+				"type": "INT32"
+			},
+			{
+				"name": "SENDER_STORAGE_LOCATION",
+				"type": "UTF8"
+			},
+			{
+				"name": "SENDER_PLANT",
+				"type": "INT32"
+			},
+			{
+				"name": "RECEIVING_STORAGE_LOCATION",
+				"type": "UTF8"
+			},
+			{
+				"name": "RECEIVING_PLANT",
+				"type": "INT32"
+			},
+			{
+				"name": "POSTING_DATE",
+				"type": "DATE"
+			},
+			{
+				"name": "ENTRY_DATE",
+				"type": "DATE"
+			},
+			{
+				"name": "ENTRY_TIME",
+				"type": "UTF8"
+			},
+			{
+				"name": "USERNAME",
+				"type": "UTF8"
+			},
+			{
+				"name": "CUSTOMER_ID",
+				"type": "UTF8"
+			},
+			{
+				"name": "SALES_ORDER_NO",
+				"type": "UTF8"
+			},
+			{
+				"name": "SALES_ORDER_ITEM",
+				"type": "INT32"
+			},
+			{
+				"name": "FUNDS_CENTER",
+				"type": "UTF8"
+			}
+		]
+	},
+	"type": "Microsoft.DataFactory/factories/datasets"
+}

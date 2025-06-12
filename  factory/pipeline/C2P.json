@@ -1,0 +1,234 @@
+{
+	"name": "C2P",
+	"properties": {
+		"activities": [
+			{
+				"name": "end_time",
+				"type": "DatabricksNotebook",
+				"dependsOn": [
+					{
+						"activity": "4_each_file",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"notebookPath": "/Users/21691a0134@mits.ac.in/ETLdata",
+					"baseParameters": {
+						"pipeline_name": {
+							"value": "@pipeline().Pipeline",
+							"type": "Expression"
+						},
+						"pipeline_run_id": {
+							"value": "@pipeline().RunId",
+							"type": "Expression"
+						},
+						"process_name": "end_time"
+					}
+				},
+				"linkedServiceName": {
+					"referenceName": "Databrickslink",
+					"type": "LinkedServiceReference"
+				}
+			},
+			{
+				"name": "status",
+				"type": "SetVariable",
+				"dependsOn": [
+					{
+						"activity": "end_time",
+						"dependencyConditions": [
+							"Completed"
+						]
+					}
+				],
+				"policy": {
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"variableName": "status",
+					"value": {
+						"value": "@if(equals(activity('end_time').status, 'Succeeded'), 'Success', 'Failure')\n",
+						"type": "Expression"
+					}
+				}
+			},
+			{
+				"name": "status_update",
+				"type": "DatabricksNotebook",
+				"dependsOn": [
+					{
+						"activity": "status",
+						"dependencyConditions": [
+							"Completed"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"notebookPath": "/Users/21691a0134@mits.ac.in/ETLdata",
+					"baseParameters": {
+						"pipeline_name": {
+							"value": "@pipeline().Pipeline",
+							"type": "Expression"
+						},
+						"pipeline_run_id": {
+							"value": "@pipeline().RunId",
+							"type": "Expression"
+						},
+						"process_name": "end_time",
+						"status": {
+							"value": "@variables('status')",
+							"type": "Expression"
+						}
+					}
+				},
+				"linkedServiceName": {
+					"referenceName": "Databrickslink",
+					"type": "LinkedServiceReference"
+				}
+			},
+			{
+				"name": "Metadata",
+				"type": "Lookup",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "SqlServerSource",
+						"sqlReaderQuery": "SELECT tm.*\nFROM metadata.table_meta tm\ninner join metadata.Job_meta jm ON tm.JobID = jm.JobID\nWHERE \n jm.Job_Name = 'C2P' and Table_type='fact';\n\n \n\n",
+						"queryTimeout": "02:00:00",
+						"partitionOption": "None"
+					},
+					"dataset": {
+						"referenceName": "source",
+						"type": "DatasetReference"
+					},
+					"firstRowOnly": false
+				}
+			},
+			{
+				"name": "4_each_file",
+				"type": "ForEach",
+				"dependsOn": [
+					{
+						"activity": "Metadata",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"items": {
+						"value": "@activity('Metadata').output.value",
+						"type": "Expression"
+					},
+					"activities": [
+						{
+							"name": "start_time",
+							"type": "DatabricksNotebook",
+							"dependsOn": [],
+							"policy": {
+								"timeout": "0.12:00:00",
+								"retry": 0,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"notebookPath": "/Users/21691a0134@mits.ac.in/ETLdata",
+								"baseParameters": {
+									"pipeline_name": {
+										"value": "@pipeline().Pipeline",
+										"type": "Expression"
+									},
+									"pipeline_run_id": {
+										"value": "@pipeline().RunId",
+										"type": "Expression"
+									},
+									"process_name": "start_time"
+								}
+							},
+							"linkedServiceName": {
+								"referenceName": "Databrickslink",
+								"type": "LinkedServiceReference"
+							}
+						},
+						{
+							"name": "C2P",
+							"type": "DatabricksNotebook",
+							"dependsOn": [
+								{
+									"activity": "start_time",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								}
+							],
+							"policy": {
+								"timeout": "0.12:00:00",
+								"retry": 0,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"notebookPath": "/Users/21691a0134@mits.ac.in/Transformstion_logic",
+								"baseParameters": {
+									"process_path": {
+										"value": "@item().processed_path",
+										"type": "Expression"
+									},
+									"Mode": {
+										"value": "@item().Mode",
+										"type": "Expression"
+									}
+								}
+							},
+							"linkedServiceName": {
+								"referenceName": "Databrickslink",
+								"type": "LinkedServiceReference"
+							}
+						}
+					]
+				}
+			}
+		],
+		"variables": {
+			"status": {
+				"type": "String"
+			}
+		},
+		"annotations": [],
+		"lastPublishTime": "2025-06-12T05:20:26Z"
+	},
+	"type": "Microsoft.DataFactory/factories/pipelines"
+}

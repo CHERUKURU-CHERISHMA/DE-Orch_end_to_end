@@ -1,0 +1,17 @@
+{
+	"name": "source",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "Sqllinkservice",
+			"type": "LinkedServiceReference"
+		},
+		"annotations": [],
+		"type": "SqlServerTable",
+		"schema": [],
+		"typeProperties": {
+			"schema": "metadata",
+			"table": "table_meta"
+		}
+	},
+	"type": "Microsoft.DataFactory/factories/datasets"
+}

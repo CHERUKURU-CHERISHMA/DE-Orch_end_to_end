@@ -1,0 +1,45 @@
+{
+	"name": "copysource",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "storagelinkservice",
+			"type": "LinkedServiceReference"
+		},
+		"parameters": {
+			"File_Names": {
+				"type": "string"
+			},
+			"source_path": {
+				"type": "string"
+			},
+			"container_name": {
+				"type": "string"
+			}
+		},
+		"annotations": [],
+		"type": "DelimitedText",
+		"typeProperties": {
+			"location": {
+				"type": "AzureBlobFSLocation",
+				"fileName": {
+					"value": "@dataset().File_Names",
+					"type": "Expression"
+				},
+				"folderPath": {
+					"value": "@dataset().source_path",
+					"type": "Expression"
+				},
+				"fileSystem": {
+					"value": "@dataset().container_name",
+					"type": "Expression"
+				}
+			},
+			"columnDelimiter": ",",
+			"escapeChar": "\\",
+			"firstRowAsHeader": true,
+			"quoteChar": "\""
+		},
+		"schema": []
+	},
+	"type": "Microsoft.DataFactory/factories/datasets"
+}

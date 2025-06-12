@@ -1,0 +1,38 @@
+{
+	"name": "copysink",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "storagelinkservice",
+			"type": "LinkedServiceReference"
+		},
+		"parameters": {
+			"File_Names": {
+				"type": "string"
+			},
+			"landing_path": {
+				"type": "string"
+			},
+			"container_name": {
+				"type": "string"
+			}
+		},
+		"annotations": [],
+		"type": "Parquet",
+		"typeProperties": {
+			"location": {
+				"type": "AzureBlobFSLocation",
+				"folderPath": {
+					"value": "@concat('landing/',dataset().File_Names)",
+					"type": "Expression"
+				},
+				"fileSystem": {
+					"value": "@dataset().container_name",
+					"type": "Expression"
+				}
+			},
+			"compressionCodec": "snappy"
+		},
+		"schema": []
+	},
+	"type": "Microsoft.DataFactory/factories/datasets"
+}

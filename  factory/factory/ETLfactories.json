@@ -1,0 +1,17 @@
+{
+	"name": "ETLfactories",
+	"properties": {
+		"globalParameters": {
+			"container": {
+				"type": "string",
+				"value": "etldata"
+			}
+		}
+	},
+	"location": "eastus",
+	"identity": {
+		"type": "SystemAssigned",
+		"principalId": "8ace61eb-5080-4665-bdad-d14fbeb5d135",
+		"tenantId": "b637c4f6-57b7-44dc-bce4-fec0cd202460"
+	}
+}
