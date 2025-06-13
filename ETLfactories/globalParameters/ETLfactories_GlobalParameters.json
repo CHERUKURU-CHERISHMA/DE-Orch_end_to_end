@@ -1,0 +1,6 @@
+{
+	"container": {
+		"type": "string",
+		"value": "etldata"
+	}
+}

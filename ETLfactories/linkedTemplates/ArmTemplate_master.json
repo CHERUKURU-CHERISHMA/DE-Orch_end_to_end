@@ -1,0 +1,98 @@
+{
+	"$schema": "http://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+	"contentVersion": "1.0.0.0",
+	"parameters": {
+		"factoryName": {
+			"type": "string",
+			"metadata": "Data Factory name",
+			"defaultValue": "ETLfactories"
+		},
+		"Databrickslink_accessToken": {
+			"type": "secureString",
+			"metadata": "Secure string for 'accessToken' of 'Databrickslink'"
+		},
+		"Sqllinkservice_password": {
+			"type": "secureString",
+			"metadata": "Secure string for 'password' of 'Sqllinkservice'"
+		},
+		"storagelinkservice_accountKey": {
+			"type": "secureString",
+			"metadata": "Secure string for 'accountKey' of 'storagelinkservice'"
+		},
+		"Databrickslink_properties_typeProperties_existingClusterId": {
+			"type": "string",
+			"defaultValue": "0604-072239-qvmioqz7"
+		},
+		"Sqllinkservice_properties_typeProperties_server": {
+			"type": "string",
+			"defaultValue": "etlsqlservers.database.windows.net"
+		},
+		"Sqllinkservice_properties_typeProperties_database": {
+			"type": "string",
+			"defaultValue": "ETLdatabases"
+		},
+		"Sqllinkservice_properties_typeProperties_userName": {
+			"type": "string",
+			"defaultValue": "ETLlogin"
+		},
+		"storagelinkservice_properties_typeProperties_url": {
+			"type": "string",
+			"defaultValue": "https://etlstracc.dfs.core.windows.net/"
+		},
+		"containerUri": {
+			"type": "string",
+			"metadata": "URI to storage account containing linked ARM templates"
+		},
+		"containerSasToken": {
+			"type": "string",
+			"metadata": "Sas token to storage account containing linked ARM templates"
+		}
+	},
+	"variables": {
+		"factoryId": "[concat('Microsoft.DataFactory/factories/', parameters('factoryName'))]"
+	},
+	"resources": [
+		{
+			"name": "ETLfactories_ArmTemplate_0",
+			"type": "Microsoft.Resources/deployments",
+			"apiVersion": "2024-03-01",
+			"properties": {
+				"mode": "incremental",
+				"templateLink": {
+					"uri": "[concat(parameters('containerUri'), '/ArmTemplate_0.json', parameters('containerSasToken'))]",
+					"contentVersion": "1.0.0.0"
+				},
+				"parameters": {
+					"factoryName": {
+						"value": "[parameters('factoryName')]"
+					},
+					"Databrickslink_accessToken": {
+						"value": "[parameters('Databrickslink_accessToken')]"
+					},
+					"Sqllinkservice_password": {
+						"value": "[parameters('Sqllinkservice_password')]"
+					},
+					"storagelinkservice_accountKey": {
+						"value": "[parameters('storagelinkservice_accountKey')]"
+					},
+					"Databrickslink_properties_typeProperties_existingClusterId": {
+						"value": "[parameters('Databrickslink_properties_typeProperties_existingClusterId')]"
+					},
+					"Sqllinkservice_properties_typeProperties_server": {
+						"value": "[parameters('Sqllinkservice_properties_typeProperties_server')]"
+					},
+					"Sqllinkservice_properties_typeProperties_database": {
+						"value": "[parameters('Sqllinkservice_properties_typeProperties_database')]"
+					},
+					"Sqllinkservice_properties_typeProperties_userName": {
+						"value": "[parameters('Sqllinkservice_properties_typeProperties_userName')]"
+					},
+					"storagelinkservice_properties_typeProperties_url": {
+						"value": "[parameters('storagelinkservice_properties_typeProperties_url')]"
+					}
+				}
+			},
+			"dependsOn": []
+		}
+	]
+}
