@@ -139,37 +139,6 @@
 							]
 						},
 						{
-							"name": "start_time",
-							"type": "DatabricksNotebook",
-							"dependsOn": [],
-							"policy": {
-								"timeout": "0.12:00:00",
-								"retry": 0,
-								"retryIntervalInSeconds": 30,
-								"secureOutput": false,
-								"secureInput": false
-							},
-							"userProperties": [],
-							"typeProperties": {
-								"notebookPath": "/Users/21691a0134@mits.ac.in/ETLdata",
-								"baseParameters": {
-									"pipeline_name": {
-										"value": "@pipeline().Pipeline",
-										"type": "Expression"
-									},
-									"pipeline_run_id": {
-										"value": "@pipeline().RunId",
-										"type": "Expression"
-									},
-									"process_name": "start_time"
-								}
-							},
-							"linkedServiceName": {
-								"referenceName": "Databrickslink",
-								"type": "LinkedServiceReference"
-							}
-						},
-						{
 							"name": "l2c_data_load",
 							"type": "DatabricksNotebook",
 							"dependsOn": [
@@ -287,112 +256,135 @@
 								"referenceName": "Databrickslink",
 								"type": "LinkedServiceReference"
 							}
+						},
+						{
+							"name": "start_time",
+							"type": "DatabricksNotebook",
+							"dependsOn": [],
+							"policy": {
+								"timeout": "0.12:00:00",
+								"retry": 0,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"notebookPath": "/Users/21691a0134@mits.ac.in/ETLdata",
+								"baseParameters": {
+									"JobID": {
+										"value": "@string(item().JobID)\n",
+										"type": "Expression"
+									},
+									"File_Names": {
+										"value": "@item().Table_Names\n",
+										"type": "Expression"
+									},
+									"process_name": "start_time",
+									"pipeline_name": {
+										"value": "@pipeline().Pipeline",
+										"type": "Expression"
+									}
+								}
+							},
+							"linkedServiceName": {
+								"referenceName": "Databrickslink",
+								"type": "LinkedServiceReference"
+							}
+						},
+						{
+							"name": "end_time",
+							"type": "DatabricksNotebook",
+							"dependsOn": [
+								{
+									"activity": "archive_on_success",
+									"dependencyConditions": [
+										"Completed"
+									]
+								}
+							],
+							"policy": {
+								"timeout": "0.12:00:00",
+								"retry": 0,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"notebookPath": "/Users/21691a0134@mits.ac.in/ETLdata",
+								"baseParameters": {
+									"pipeline_name": {
+										"value": "@pipeline().Pipeline",
+										"type": "Expression"
+									},
+									"JobID": {
+										"value": "@string(item().JobID)\n",
+										"type": "Expression"
+									},
+									"process_name": "end_time",
+									"File_Names": {
+										"value": "@item().Table_Names",
+										"type": "Expression"
+									},
+									"status": {
+										"value": "@if(equals(activity('archive_on_success').status, 'Succeeded'), 'success', 'failure')\n",
+										"type": "Expression"
+									}
+								}
+							},
+							"linkedServiceName": {
+								"referenceName": "Databrickslink",
+								"type": "LinkedServiceReference"
+							}
+						},
+						{
+							"name": "end_time_fail",
+							"type": "DatabricksNotebook",
+							"dependsOn": [
+								{
+									"activity": "archive_on_failure",
+									"dependencyConditions": [
+										"Completed"
+									]
+								}
+							],
+							"policy": {
+								"timeout": "0.12:00:00",
+								"retry": 0,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"notebookPath": "/Users/21691a0134@mits.ac.in/ETLdata",
+								"baseParameters": {
+									"pipeline_name": {
+										"value": "@pipeline().Pipeline",
+										"type": "Expression"
+									},
+									"JobID": {
+										"value": "@string(item().JobID)\n",
+										"type": "Expression"
+									},
+									"process_name": "end_time",
+									"File_Names": {
+										"value": "@item().Table_Names",
+										"type": "Expression"
+									},
+									"status": {
+										"value": "@if(equals(activity('archive_on_failure').status, 'Succeeded'), 'success', 'failure')\n",
+										"type": "Expression"
+									}
+								}
+							},
+							"linkedServiceName": {
+								"referenceName": "Databrickslink",
+								"type": "LinkedServiceReference"
+							}
 						}
 					]
-				}
-			},
-			{
-				"name": "end_time",
-				"type": "DatabricksNotebook",
-				"dependsOn": [
-					{
-						"activity": "4_each_file",
-						"dependencyConditions": [
-							"Succeeded"
-						]
-					}
-				],
-				"policy": {
-					"timeout": "0.12:00:00",
-					"retry": 0,
-					"retryIntervalInSeconds": 30,
-					"secureOutput": false,
-					"secureInput": false
-				},
-				"userProperties": [],
-				"typeProperties": {
-					"notebookPath": "/Users/21691a0134@mits.ac.in/ETLdata",
-					"baseParameters": {
-						"pipeline_name": {
-							"value": "@pipeline().Pipeline",
-							"type": "Expression"
-						},
-						"pipeline_run_id": {
-							"value": "@pipeline().RunId",
-							"type": "Expression"
-						},
-						"process_name": "end_time"
-					}
-				},
-				"linkedServiceName": {
-					"referenceName": "Databrickslink",
-					"type": "LinkedServiceReference"
-				}
-			},
-			{
-				"name": "status",
-				"type": "SetVariable",
-				"dependsOn": [
-					{
-						"activity": "end_time",
-						"dependencyConditions": [
-							"Completed"
-						]
-					}
-				],
-				"policy": {
-					"secureOutput": false,
-					"secureInput": false
-				},
-				"userProperties": [],
-				"typeProperties": {
-					"variableName": "status",
-					"value": {
-						"value": "@if(equals(activity('end_time').status, 'Succeeded'), 'Success', 'Failure')\n",
-						"type": "Expression"
-					}
-				}
-			},
-			{
-				"name": "status_update",
-				"type": "DatabricksNotebook",
-				"dependsOn": [
-					{
-						"activity": "status",
-						"dependencyConditions": [
-							"Completed"
-						]
-					}
-				],
-				"policy": {
-					"timeout": "0.12:00:00",
-					"retry": 0,
-					"retryIntervalInSeconds": 30,
-					"secureOutput": false,
-					"secureInput": false
-				},
-				"userProperties": [],
-				"typeProperties": {
-					"notebookPath": "/Users/21691a0134@mits.ac.in/ETLdata",
-					"baseParameters": {
-						"pipeline_name": {
-							"value": "@pipeline().Pipeline",
-							"type": "Expression"
-						},
-						"pipeline_run_id": {
-							"value": "@pipeline().RunId",
-							"type": "Expression"
-						},
-						"process_name": "end_time",
-						"status": {
-							"value": "@variables('status')",
-							"type": "Expression"
-						}
-					}
-				},
-				"linkedServiceName": {
-					"referenceName": "Databrickslink",
-					"type": "LinkedServiceReference"
 				}
 			}
 		],

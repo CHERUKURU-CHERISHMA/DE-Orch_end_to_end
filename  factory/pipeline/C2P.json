@@ -3,110 +3,6 @@
 	"properties": {
 		"activities": [
 			{
-				"name": "end_time",
-				"type": "DatabricksNotebook",
-				"dependsOn": [
-					{
-						"activity": "4_each_file",
-						"dependencyConditions": [
-							"Succeeded"
-						]
-					}
-				],
-				"policy": {
-					"timeout": "0.12:00:00",
-					"retry": 0,
-					"retryIntervalInSeconds": 30,
-					"secureOutput": false,
-					"secureInput": false
-				},
-				"userProperties": [],
-				"typeProperties": {
-					"notebookPath": "/Users/21691a0134@mits.ac.in/ETLdata",
-					"baseParameters": {
-						"pipeline_name": {
-							"value": "@pipeline().Pipeline",
-							"type": "Expression"
-						},
-						"pipeline_run_id": {
-							"value": "@pipeline().RunId",
-							"type": "Expression"
-						},
-						"process_name": "end_time"
-					}
-				},
-				"linkedServiceName": {
-					"referenceName": "Databrickslink",
-					"type": "LinkedServiceReference"
-				}
-			},
-			{
-				"name": "status",
-				"type": "SetVariable",
-				"dependsOn": [
-					{
-						"activity": "end_time",
-						"dependencyConditions": [
-							"Completed"
-						]
-					}
-				],
-				"policy": {
-					"secureOutput": false,
-					"secureInput": false
-				},
-				"userProperties": [],
-				"typeProperties": {
-					"variableName": "status",
-					"value": {
-						"value": "@if(equals(activity('end_time').status, 'Succeeded'), 'Success', 'Failure')\n",
-						"type": "Expression"
-					}
-				}
-			},
-			{
-				"name": "status_update",
-				"type": "DatabricksNotebook",
-				"dependsOn": [
-					{
-						"activity": "status",
-						"dependencyConditions": [
-							"Completed"
-						]
-					}
-				],
-				"policy": {
-					"timeout": "0.12:00:00",
-					"retry": 0,
-					"retryIntervalInSeconds": 30,
-					"secureOutput": false,
-					"secureInput": false
-				},
-				"userProperties": [],
-				"typeProperties": {
-					"notebookPath": "/Users/21691a0134@mits.ac.in/ETLdata",
-					"baseParameters": {
-						"pipeline_name": {
-							"value": "@pipeline().Pipeline",
-							"type": "Expression"
-						},
-						"pipeline_run_id": {
-							"value": "@pipeline().RunId",
-							"type": "Expression"
-						},
-						"process_name": "end_time",
-						"status": {
-							"value": "@variables('status')",
-							"type": "Expression"
-						}
-					}
-				},
-				"linkedServiceName": {
-					"referenceName": "Databrickslink",
-					"type": "LinkedServiceReference"
-				}
-			},
-			{
 				"name": "Metadata",
 				"type": "Lookup",
 				"dependsOn": [],
@@ -165,15 +61,19 @@
 							"typeProperties": {
 								"notebookPath": "/Users/21691a0134@mits.ac.in/ETLdata",
 								"baseParameters": {
+									"JobID": {
+										"value": "@string(item().JobID)\n",
+										"type": "Expression"
+									},
+									"File_Names": {
+										"value": "@item().Table_Names\n",
+										"type": "Expression"
+									},
+									"process_name": "start_time",
 									"pipeline_name": {
 										"value": "@pipeline().Pipeline",
 										"type": "Expression"
-									},
-									"pipeline_run_id": {
-										"value": "@pipeline().RunId",
-										"type": "Expression"
-									},
-									"process_name": "start_time"
+									}
 								}
 							},
 							"linkedServiceName": {
@@ -209,6 +109,52 @@
 									},
 									"Mode": {
 										"value": "@item().Mode",
+										"type": "Expression"
+									}
+								}
+							},
+							"linkedServiceName": {
+								"referenceName": "Databrickslink",
+								"type": "LinkedServiceReference"
+							}
+						},
+						{
+							"name": "end_time",
+							"type": "DatabricksNotebook",
+							"dependsOn": [
+								{
+									"activity": "C2P",
+									"dependencyConditions": [
+										"Completed"
+									]
+								}
+							],
+							"policy": {
+								"timeout": "0.12:00:00",
+								"retry": 0,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"notebookPath": "/Users/21691a0134@mits.ac.in/ETLdata",
+								"baseParameters": {
+									"pipeline_name": {
+										"value": "@pipeline().Pipeline",
+										"type": "Expression"
+									},
+									"JobID": {
+										"value": "@string(item().JobID)\n",
+										"type": "Expression"
+									},
+									"process_name": "end_time",
+									"File_Names": {
+										"value": "@item().Table_Names",
+										"type": "Expression"
+									},
+									"status": {
+										"value": "@if(equals(activity('C2P').status, 'Succeeded'), 'success', 'failure')\n",
 										"type": "Expression"
 									}
 								}
