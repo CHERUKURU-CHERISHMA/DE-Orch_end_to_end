@@ -642,16 +642,16 @@
 											"referenceName": "copysource",
 											"type": "DatasetReference",
 											"parameters": {
+												"File_Names": {
+													"value": "@item().Table_Names",
+													"type": "Expression"
+												},
 												"source_path": {
-													"value": "@item().source_path",
+													"value": "@concat(item().source_path,'/',item().Table_Names)\n ",
 													"type": "Expression"
 												},
 												"container_name": {
 													"value": "@pipeline().globalParameters.container",
-													"type": "Expression"
-												},
-												"File_Names": {
-													"value": "@item().Table_Names",
 													"type": "Expression"
 												}
 											}
@@ -722,16 +722,9 @@
 									}
 								},
 								{
-									"name": "archive_on_failure",
+									"name": "start_time",
 									"type": "DatabricksNotebook",
-									"dependsOn": [
-										{
-											"activity": "l2c_data_load",
-											"dependencyConditions": [
-												"Failed"
-											]
-										}
-									],
+									"dependsOn": [],
 									"policy": {
 										"timeout": "0.12:00:00",
 										"retry": 0,
@@ -743,15 +736,19 @@
 									"typeProperties": {
 										"notebookPath": "/Users/21691a0134@mits.ac.in/ETLdata",
 										"baseParameters": {
+											"JobID": {
+												"value": "@string(item().JobID)\n",
+												"type": "Expression"
+											},
 											"File_Names": {
-												"value": "@item().Table_Names",
+												"value": "@item().Table_Names\n",
 												"type": "Expression"
 											},
-											"landing_path": {
-												"value": "@item().landing_path",
+											"process_name": "start_time",
+											"pipeline_name": {
+												"value": "@pipeline().Pipeline",
 												"type": "Expression"
-											},
-											"process_name": "archive"
+											}
 										}
 									},
 									"linkedServiceName": {
@@ -798,9 +795,16 @@
 									}
 								},
 								{
-									"name": "start_time",
+									"name": "archive_on_failure",
 									"type": "DatabricksNotebook",
-									"dependsOn": [],
+									"dependsOn": [
+										{
+											"activity": "l2c_data_load",
+											"dependencyConditions": [
+												"Failed"
+											]
+										}
+									],
 									"policy": {
 										"timeout": "0.12:00:00",
 										"retry": 0,
@@ -812,19 +816,15 @@
 									"typeProperties": {
 										"notebookPath": "/Users/21691a0134@mits.ac.in/ETLdata",
 										"baseParameters": {
-											"JobID": {
-												"value": "@string(item().JobID)\n",
-												"type": "Expression"
-											},
 											"File_Names": {
-												"value": "@item().Table_Names\n",
+												"value": "@item().Table_Names",
 												"type": "Expression"
 											},
-											"process_name": "start_time",
-											"pipeline_name": {
-												"value": "@pipeline().Pipeline",
+											"landing_path": {
+												"value": "@item().landing_path",
 												"type": "Expression"
-											}
+											},
+											"process_name": "archive"
 										}
 									},
 									"linkedServiceName": {
