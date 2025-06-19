@@ -387,6 +387,44 @@
 								"referenceName": "Databrickslink",
 								"type": "LinkedServiceReference"
 							}
+						},
+						{
+							"name": "archive_on_failure_copy1",
+							"type": "DatabricksNotebook",
+							"dependsOn": [
+								{
+									"activity": "s2l_data_load",
+									"dependencyConditions": [
+										"Failed"
+									]
+								}
+							],
+							"policy": {
+								"timeout": "0.12:00:00",
+								"retry": 0,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"notebookPath": "/Users/21691a0134@mits.ac.in/ETLdata",
+								"baseParameters": {
+									"File_Names": {
+										"value": "@item().Table_Names",
+										"type": "Expression"
+									},
+									"landing_path": {
+										"value": "@item().landing_path",
+										"type": "Expression"
+									},
+									"process_name": "archive"
+								}
+							},
+							"linkedServiceName": {
+								"referenceName": "Databrickslink",
+								"type": "LinkedServiceReference"
+							}
 						}
 					]
 				}
