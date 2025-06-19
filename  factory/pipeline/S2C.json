@@ -330,6 +330,10 @@
 									"status": {
 										"value": "@if(equals(activity('archive_on_success').status, 'Succeeded'), 'success', 'failure')\n",
 										"type": "Expression"
+									},
+									"start_time": {
+										"value": "@activity('start_time').output.runOutput.result\n",
+										"type": "Expression"
 									}
 								}
 							},
