@@ -613,6 +613,10 @@
 											"status": {
 												"value": "@if(equals(activity('C2P').status, 'Succeeded'), 'success', 'failure')\n",
 												"type": "Expression"
+											},
+											"start_time": {
+												"value": "@activity('start_time').output.runOutput.result",
+												"type": "Expression"
 											}
 										}
 									},
@@ -835,6 +839,10 @@
 											},
 											"status": {
 												"value": "@if(equals(activity('P2S').status, 'Succeeded'), 'success', 'failure')\n",
+												"type": "Expression"
+											},
+											"start_time": {
+												"value": "@activity('start_time').output.runOutput.result",
 												"type": "Expression"
 											}
 										}
@@ -1195,6 +1203,10 @@
 											},
 											"status": {
 												"value": "@if(equals(activity('archive_on_success').status, 'Succeeded'), 'success', 'failure')\n",
+												"type": "Expression"
+											},
+											"start_time": {
+												"value": "@activity('start_time').output.runOutput.result\n",
 												"type": "Expression"
 											}
 										}
