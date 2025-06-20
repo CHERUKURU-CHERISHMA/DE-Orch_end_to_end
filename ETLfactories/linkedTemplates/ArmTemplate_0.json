@@ -1168,7 +1168,7 @@
 												"type": "Expression"
 											},
 											"start_time": {
-												"value": "@activity('start_time').output.runOutput.start_time\n",
+												"value": "@activity('start_time').output.runOutput.start_time",
 												"type": "Expression"
 											}
 										}
@@ -1256,7 +1256,7 @@
 												"type": "Expression"
 											},
 											"start_time": {
-												"value": "@activity('start_time').output.runOutput.result\n",
+												"value": "@activity('start_time').output.runOutput.start_time\n",
 												"type": "Expression"
 											}
 										}
