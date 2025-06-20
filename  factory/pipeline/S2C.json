@@ -305,7 +305,7 @@
 							}
 						},
 						{
-							"name": "archive_on_failure_copy1",
+							"name": "archive_on_failure",
 							"type": "DatabricksNotebook",
 							"dependsOn": [
 								{
