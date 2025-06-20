@@ -332,7 +332,7 @@
 							"headers": {},
 							"url": "https://prod-84.eastus.logic.azure.com:443/workflows/1f8d7565a40d416cb419dcdbff4f4b13/triggers/When_a_HTTP_request_is_received/paths/invoke?api-version=2016-10-01&sp=%2Ftriggers%2FWhen_a_HTTP_request_is_received%2Frun&sv=1.0&sig=4b6pjZGFLHlvC0EdNP7QP69T5JAR6z26CGD8JEwk6hY",
 							"body": {
-								"value": "{\n  \"pipelineNames\": \"@{pipeline().Pipeline}\",\n  \"status\": \"@{activity('P2S').Status}\",\n  \"ActivityName\":\"@{activity('P2S').output.pipelineName}\",\n  \"errorMessage\": \"@{if(equals(activity('P2S').Status,'Failed'), activity('P2S').Error.message, '')}\"\n}\n\n\n",
+								"value": "{\n  \"pipelineNames\": \"@{pipeline().Pipeline}\",\n  \"pipeline_run_id\":\"@{pipeline().RunId}\",\n  \"status\": \"@{activity('P2S').Status}\",\n  \"ActivityName\":\"@{activity('P2S').output.pipelineName}\",\n  \"errorMessage\": \"@{if(equals(activity('P2S').Status,'Failed'), activity('P2S').Error.message, '')}\"\n\n}\n\n\n",
 								"type": "Expression"
 							}
 						}
@@ -361,7 +361,7 @@
 							"headers": {},
 							"url": "https://prod-84.eastus.logic.azure.com:443/workflows/1f8d7565a40d416cb419dcdbff4f4b13/triggers/When_a_HTTP_request_is_received/paths/invoke?api-version=2016-10-01&sp=%2Ftriggers%2FWhen_a_HTTP_request_is_received%2Frun&sv=1.0&sig=4b6pjZGFLHlvC0EdNP7QP69T5JAR6z26CGD8JEwk6hY",
 							"body": {
-								"value": "{\n  \"pipelineNames\": \"@{pipeline().Pipeline}\",\n  \"status\": \"@{activity('S2C').Status}\",\n  \"ActivityName\":\"@{activity('S2C').output.pipelineName}\",\n  \"errorMessage\": \"@{if(equals(activity('S2C').Status,'Failed'), activity('S2C').Error.message, '')}\"\n}\n\n\n\n",
+								"value": "{\n  \"pipelineNames\": \"@{pipeline().Pipeline}\",\n  \"pipeline_run_id\":\"@{pipeline().RunId}\",\n  \"status\": \"@{activity('S2C').Status}\",\n  \"ActivityName\":\"@{activity('S2C').output.pipelineName}\",\n  \"errorMessage\": \"@{if(equals(activity('S2C').Status,'Failed'), activity('S2C').Error.message, '')}\"\n}\n\n\n\n",
 								"type": "Expression"
 							}
 						}
@@ -390,7 +390,7 @@
 							"headers": {},
 							"url": "https://prod-84.eastus.logic.azure.com:443/workflows/1f8d7565a40d416cb419dcdbff4f4b13/triggers/When_a_HTTP_request_is_received/paths/invoke?api-version=2016-10-01&sp=%2Ftriggers%2FWhen_a_HTTP_request_is_received%2Frun&sv=1.0&sig=4b6pjZGFLHlvC0EdNP7QP69T5JAR6z26CGD8JEwk6hY",
 							"body": {
-								"value": "{\n  \"pipelineNames\": \"@{pipeline().Pipeline}\",\n  \"status\": \"@{activity('C2P').Status}\",\n  \"ActivityName\":\"@{activity('C2P').output.pipelineName}\",\n  \"errorMessage\": \"@{if(equals(activity('S2C').Status,'Failed'), activity('C2P').Error.message, '')}\"\n}\n\n\n",
+								"value": "{\n  \"pipelineNames\": \"@{pipeline().Pipeline}\",\n  \"pipeline_run_id\":\"@{pipeline().RunId}\",\n  \"status\": \"@{activity('C2P').Status}\",\n  \"ActivityName\":\"@{activity('C2P').output.pipelineName}\",\n  \"errorMessage\": \"@{if(equals(activity('S2C').Status,'Failed'), activity('C2P').Error.message, '')}\"\n}\n\n\n",
 								"type": "Expression"
 							}
 						}
@@ -860,45 +860,7 @@
 										{
 											"activity": "l2c_data_load",
 											"dependencyConditions": [
-												"Succeeded"
-											]
-										}
-									],
-									"policy": {
-										"timeout": "0.12:00:00",
-										"retry": 0,
-										"retryIntervalInSeconds": 30,
-										"secureOutput": false,
-										"secureInput": false
-									},
-									"userProperties": [],
-									"typeProperties": {
-										"notebookPath": "/Users/21691a0134@mits.ac.in/ETLdata",
-										"baseParameters": {
-											"File_Names": {
-												"value": "@item().Table_Names",
-												"type": "Expression"
-											},
-											"landing_path": {
-												"value": "@item().landing_path",
-												"type": "Expression"
-											},
-											"process_name": "archive"
-										}
-									},
-									"linkedServiceName": {
-										"referenceName": "Databrickslink",
-										"type": "LinkedServiceReference"
-									}
-								},
-								{
-									"name": "archive_on_failure",
-									"type": "DatabricksNotebook",
-									"dependsOn": [
-										{
-											"activity": "l2c_data_load",
-											"dependencyConditions": [
-												"Failed"
+												"Completed"
 											]
 										}
 									],
@@ -980,53 +942,7 @@
 									}
 								},
 								{
-									"name": "end_time_fail",
-									"type": "DatabricksNotebook",
-									"dependsOn": [
-										{
-											"activity": "archive_on_failure",
-											"dependencyConditions": [
-												"Completed"
-											]
-										}
-									],
-									"policy": {
-										"timeout": "0.12:00:00",
-										"retry": 0,
-										"retryIntervalInSeconds": 30,
-										"secureOutput": false,
-										"secureInput": false
-									},
-									"userProperties": [],
-									"typeProperties": {
-										"notebookPath": "/Users/21691a0134@mits.ac.in/ETLdata",
-										"baseParameters": {
-											"pipeline_name": {
-												"value": "@pipeline().Pipeline",
-												"type": "Expression"
-											},
-											"JobID": {
-												"value": "@string(item().JobID)\n",
-												"type": "Expression"
-											},
-											"process_name": "end_time",
-											"File_Names": {
-												"value": "@item().Table_Names",
-												"type": "Expression"
-											},
-											"status": {
-												"value": "@if(equals(activity('archive_on_failure').status, 'Succeeded'), 'success', 'failure')\n",
-												"type": "Expression"
-											}
-										}
-									},
-									"linkedServiceName": {
-										"referenceName": "Databrickslink",
-										"type": "LinkedServiceReference"
-									}
-								},
-								{
-									"name": "archive_on_failure_copy1",
+									"name": "archive_on_failure",
 									"type": "DatabricksNotebook",
 									"dependsOn": [
 										{
