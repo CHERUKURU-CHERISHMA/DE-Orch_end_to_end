@@ -834,7 +834,7 @@
 										"notebookPath": "/Users/21691a0134@mits.ac.in/ETLdata",
 										"baseParameters": {
 											"JobID": {
-												"value": "@string(item().JobID)\n",
+												"value": "@string(item().JobID)",
 												"type": "Expression"
 											},
 											"File_Names": {
@@ -972,6 +972,56 @@
 												"type": "Expression"
 											},
 											"process_name": "archive"
+										}
+									},
+									"linkedServiceName": {
+										"referenceName": "Databrickslink",
+										"type": "LinkedServiceReference"
+									}
+								},
+								{
+									"name": "end_time_S2L fail",
+									"type": "DatabricksNotebook",
+									"dependsOn": [
+										{
+											"activity": "archive_on_failure",
+											"dependencyConditions": [
+												"Completed"
+											]
+										}
+									],
+									"policy": {
+										"timeout": "0.12:00:00",
+										"retry": 0,
+										"retryIntervalInSeconds": 30,
+										"secureOutput": false,
+										"secureInput": false
+									},
+									"userProperties": [],
+									"typeProperties": {
+										"notebookPath": "/Users/21691a0134@mits.ac.in/ETLdata",
+										"baseParameters": {
+											"pipeline_name": {
+												"value": "@pipeline().Pipeline",
+												"type": "Expression"
+											},
+											"JobID": {
+												"value": "@string(item().JobID)\n",
+												"type": "Expression"
+											},
+											"process_name": "end_time",
+											"File_Names": {
+												"value": "@item().Table_Names",
+												"type": "Expression"
+											},
+											"status": {
+												"value": "@if(equals(activity('s2l_data_load').status, 'Succeeded'), 'success', 'failure')\n",
+												"type": "Expression"
+											},
+											"start_time": {
+												"value": "@activity('start_time').output.runOutput.result\n",
+												"type": "Expression"
+											}
 										}
 									},
 									"linkedServiceName": {
