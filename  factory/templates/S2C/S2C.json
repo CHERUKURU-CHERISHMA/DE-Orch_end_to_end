@@ -1,0 +1,544 @@
+{
+	"$schema": "http://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+	"contentVersion": "1.0.0.0",
+	"parameters": {
+		"factoryName": {
+			"type": "string",
+			"metadata": "Data Factory name"
+		},
+		"Databrickslink": {
+			"type": "string"
+		},
+		"Sqllinkservice": {
+			"type": "string"
+		},
+		"storagelinkservice": {
+			"type": "string"
+		}
+	},
+	"variables": {
+		"factoryId": "[concat('Microsoft.DataFactory/factories/', parameters('factoryName'))]"
+	},
+	"resources": [
+		{
+			"name": "[concat(parameters('factoryName'), '/S2C')]",
+			"type": "Microsoft.DataFactory/factories/pipelines",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"activities": [
+					{
+						"name": "Metadata",
+						"type": "Lookup",
+						"dependsOn": [],
+						"policy": {
+							"timeout": "0.12:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"source": {
+								"type": "SqlServerSource",
+								"sqlReaderQuery": "SELECT tm.*\nFROM metadata.table_meta tm\nJOIN metadata.Job_meta jm ON tm.JobID = jm.JobID\nWHERE  jm.Job_Name = 'S2C';\n\n",
+								"queryTimeout": "02:00:00",
+								"partitionOption": "None"
+							},
+							"dataset": {
+								"referenceName": "source",
+								"type": "DatasetReference"
+							},
+							"firstRowOnly": false
+						}
+					},
+					{
+						"name": "4_each_file",
+						"type": "ForEach",
+						"dependsOn": [
+							{
+								"activity": "Metadata",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"userProperties": [],
+						"typeProperties": {
+							"items": {
+								"value": "@activity('Metadata').output.value",
+								"type": "Expression"
+							},
+							"activities": [
+								{
+									"name": "s2l_data_load",
+									"type": "Copy",
+									"dependsOn": [
+										{
+											"activity": "start_time",
+											"dependencyConditions": [
+												"Succeeded"
+											]
+										}
+									],
+									"policy": {
+										"timeout": "0.12:00:00",
+										"retry": 0,
+										"retryIntervalInSeconds": 30,
+										"secureOutput": false,
+										"secureInput": false
+									},
+									"userProperties": [],
+									"typeProperties": {
+										"source": {
+											"type": "DelimitedTextSource",
+											"storeSettings": {
+												"type": "AzureBlobFSReadSettings",
+												"recursive": true,
+												"wildcardFileName": "*.*",
+												"enablePartitionDiscovery": false
+											},
+											"formatSettings": {
+												"type": "DelimitedTextReadSettings"
+											}
+										},
+										"sink": {
+											"type": "ParquetSink",
+											"storeSettings": {
+												"type": "AzureBlobFSWriteSettings"
+											},
+											"formatSettings": {
+												"type": "ParquetWriteSettings"
+											}
+										},
+										"enableStaging": false,
+										"translator": {
+											"type": "TabularTranslator",
+											"typeConversion": true,
+											"typeConversionSettings": {
+												"allowDataTruncation": true,
+												"treatBooleanAsNumber": false
+											}
+										}
+									},
+									"inputs": [
+										{
+											"referenceName": "copysource",
+											"type": "DatasetReference",
+											"parameters": {
+												"File_Names": {
+													"value": "@item().Table_Names",
+													"type": "Expression"
+												},
+												"source_path": {
+													"value": "@concat(item().source_path,'/',item().Table_Names)\n ",
+													"type": "Expression"
+												},
+												"container_name": {
+													"value": "@pipeline().globalParameters.container",
+													"type": "Expression"
+												}
+											}
+										}
+									],
+									"outputs": [
+										{
+											"referenceName": "copysink",
+											"type": "DatasetReference",
+											"parameters": {
+												"File_Names": {
+													"value": "@item().Table_Names",
+													"type": "Expression"
+												},
+												"landing_path": {
+													"value": "\n@concat('landing/', item().Table_Names)",
+													"type": "Expression"
+												},
+												"container_name": {
+													"value": "@pipeline().globalParameters.container",
+													"type": "Expression"
+												}
+											}
+										}
+									]
+								},
+								{
+									"name": "l2c_data_load",
+									"type": "DatabricksNotebook",
+									"dependsOn": [
+										{
+											"activity": "s2l_data_load",
+											"dependencyConditions": [
+												"Succeeded"
+											]
+										}
+									],
+									"policy": {
+										"timeout": "0.12:00:00",
+										"retry": 0,
+										"retryIntervalInSeconds": 30,
+										"secureOutput": false,
+										"secureInput": false
+									},
+									"userProperties": [],
+									"typeProperties": {
+										"notebookPath": "/Users/21691a0134@mits.ac.in/ETLdata",
+										"baseParameters": {
+											"File_Names": {
+												"value": "@item().Table_Names",
+												"type": "Expression"
+											},
+											"landing_path": {
+												"value": "@item().landing_path",
+												"type": "Expression"
+											},
+											"curated_path": {
+												"value": "@item().curated_path",
+												"type": "Expression"
+											},
+											"process_name": "l2c",
+											"Mode": "overwrite"
+										}
+									},
+									"linkedServiceName": {
+										"referenceName": "[parameters('Databrickslink')]",
+										"type": "LinkedServiceReference"
+									}
+								},
+								{
+									"name": "start_time",
+									"type": "DatabricksNotebook",
+									"dependsOn": [],
+									"policy": {
+										"timeout": "0.12:00:00",
+										"retry": 0,
+										"retryIntervalInSeconds": 30,
+										"secureOutput": false,
+										"secureInput": false
+									},
+									"userProperties": [],
+									"typeProperties": {
+										"notebookPath": "/Users/21691a0134@mits.ac.in/ETLdata",
+										"baseParameters": {
+											"JobID": {
+												"value": "@string(item().JobID)",
+												"type": "Expression"
+											},
+											"File_Names": {
+												"value": "@item().Table_Names\n",
+												"type": "Expression"
+											},
+											"process_name": "start_time",
+											"pipeline_name": {
+												"value": "@pipeline().Pipeline",
+												"type": "Expression"
+											}
+										}
+									},
+									"linkedServiceName": {
+										"referenceName": "[parameters('Databrickslink')]",
+										"type": "LinkedServiceReference"
+									}
+								},
+								{
+									"name": "archive_on_success",
+									"type": "DatabricksNotebook",
+									"dependsOn": [
+										{
+											"activity": "l2c_data_load",
+											"dependencyConditions": [
+												"Completed"
+											]
+										}
+									],
+									"policy": {
+										"timeout": "0.12:00:00",
+										"retry": 0,
+										"retryIntervalInSeconds": 30,
+										"secureOutput": false,
+										"secureInput": false
+									},
+									"userProperties": [],
+									"typeProperties": {
+										"notebookPath": "/Users/21691a0134@mits.ac.in/ETLdata",
+										"baseParameters": {
+											"File_Names": {
+												"value": "@item().Table_Names",
+												"type": "Expression"
+											},
+											"landing_path": {
+												"value": "@item().landing_path",
+												"type": "Expression"
+											},
+											"process_name": "archive"
+										}
+									},
+									"linkedServiceName": {
+										"referenceName": "[parameters('Databrickslink')]",
+										"type": "LinkedServiceReference"
+									}
+								},
+								{
+									"name": "end_time",
+									"type": "DatabricksNotebook",
+									"dependsOn": [
+										{
+											"activity": "archive_on_success",
+											"dependencyConditions": [
+												"Completed"
+											]
+										}
+									],
+									"policy": {
+										"timeout": "0.12:00:00",
+										"retry": 0,
+										"retryIntervalInSeconds": 30,
+										"secureOutput": false,
+										"secureInput": false
+									},
+									"userProperties": [],
+									"typeProperties": {
+										"notebookPath": "/Users/21691a0134@mits.ac.in/ETLdata",
+										"baseParameters": {
+											"pipeline_name": {
+												"value": "@pipeline().Pipeline",
+												"type": "Expression"
+											},
+											"JobID": {
+												"value": "@string(item().JobID)\n",
+												"type": "Expression"
+											},
+											"process_name": "end_time",
+											"File_Names": {
+												"value": "@item().Table_Names",
+												"type": "Expression"
+											},
+											"status": {
+												"value": "@if(equals(activity('archive_on_success').status, 'Succeeded'), 'success', 'failure')\n",
+												"type": "Expression"
+											},
+											"start_time": {
+												"value": "@activity('start_time').output.runOutput.start_time",
+												"type": "Expression"
+											}
+										}
+									},
+									"linkedServiceName": {
+										"referenceName": "[parameters('Databrickslink')]",
+										"type": "LinkedServiceReference"
+									}
+								},
+								{
+									"name": "archive_on_failure",
+									"type": "DatabricksNotebook",
+									"dependsOn": [
+										{
+											"activity": "s2l_data_load",
+											"dependencyConditions": [
+												"Failed"
+											]
+										}
+									],
+									"policy": {
+										"timeout": "0.12:00:00",
+										"retry": 0,
+										"retryIntervalInSeconds": 30,
+										"secureOutput": false,
+										"secureInput": false
+									},
+									"userProperties": [],
+									"typeProperties": {
+										"notebookPath": "/Users/21691a0134@mits.ac.in/ETLdata",
+										"baseParameters": {
+											"File_Names": {
+												"value": "@item().Table_Names",
+												"type": "Expression"
+											},
+											"landing_path": {
+												"value": "@item().landing_path",
+												"type": "Expression"
+											},
+											"process_name": "archive"
+										}
+									},
+									"linkedServiceName": {
+										"referenceName": "[parameters('Databrickslink')]",
+										"type": "LinkedServiceReference"
+									}
+								},
+								{
+									"name": "end_time_S2L fail",
+									"type": "DatabricksNotebook",
+									"dependsOn": [
+										{
+											"activity": "archive_on_failure",
+											"dependencyConditions": [
+												"Completed"
+											]
+										}
+									],
+									"policy": {
+										"timeout": "0.12:00:00",
+										"retry": 0,
+										"retryIntervalInSeconds": 30,
+										"secureOutput": false,
+										"secureInput": false
+									},
+									"userProperties": [],
+									"typeProperties": {
+										"notebookPath": "/Users/21691a0134@mits.ac.in/ETLdata",
+										"baseParameters": {
+											"pipeline_name": {
+												"value": "@pipeline().Pipeline",
+												"type": "Expression"
+											},
+											"JobID": {
+												"value": "@string(item().JobID)\n",
+												"type": "Expression"
+											},
+											"process_name": "end_time",
+											"File_Names": {
+												"value": "@item().Table_Names",
+												"type": "Expression"
+											},
+											"status": {
+												"value": "@if(equals(activity('s2l_data_load').status, 'Succeeded'), 'success', 'failure')\n",
+												"type": "Expression"
+											},
+											"start_time": {
+												"value": "@activity('start_time').output.runOutput.start_time\n",
+												"type": "Expression"
+											}
+										}
+									},
+									"linkedServiceName": {
+										"referenceName": "[parameters('Databrickslink')]",
+										"type": "LinkedServiceReference"
+									}
+								}
+							]
+						}
+					}
+				],
+				"variables": {
+					"status": {
+						"type": "String"
+					}
+				},
+				"annotations": [],
+				"lastPublishTime": "2025-06-12T11:55:14Z"
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/datasets/source')]",
+				"[concat(variables('factoryId'), '/datasets/copysource')]",
+				"[concat(variables('factoryId'), '/datasets/copysink')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/source')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "[parameters('Sqllinkservice')]",
+					"type": "LinkedServiceReference"
+				},
+				"annotations": [],
+				"type": "SqlServerTable",
+				"schema": [],
+				"typeProperties": {
+					"schema": "metadata",
+					"table": "table_meta"
+				}
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/copysource')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "[parameters('storagelinkservice')]",
+					"type": "LinkedServiceReference"
+				},
+				"parameters": {
+					"File_Names": {
+						"type": "string"
+					},
+					"source_path": {
+						"type": "string"
+					},
+					"container_name": {
+						"type": "string"
+					}
+				},
+				"annotations": [],
+				"type": "DelimitedText",
+				"typeProperties": {
+					"location": {
+						"type": "AzureBlobFSLocation",
+						"fileName": {
+							"value": "@dataset().File_Names",
+							"type": "Expression"
+						},
+						"folderPath": {
+							"value": "@dataset().source_path",
+							"type": "Expression"
+						},
+						"fileSystem": {
+							"value": "@dataset().container_name",
+							"type": "Expression"
+						}
+					},
+					"columnDelimiter": ",",
+					"escapeChar": "\\",
+					"firstRowAsHeader": true,
+					"quoteChar": "\""
+				},
+				"schema": []
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/copysink')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "[parameters('storagelinkservice')]",
+					"type": "LinkedServiceReference"
+				},
+				"parameters": {
+					"File_Names": {
+						"type": "string"
+					},
+					"landing_path": {
+						"type": "string"
+					},
+					"container_name": {
+						"type": "string"
+					}
+				},
+				"annotations": [],
+				"type": "Parquet",
+				"typeProperties": {
+					"location": {
+						"type": "AzureBlobFSLocation",
+						"folderPath": {
+							"value": "@concat('landing/',dataset().File_Names)",
+							"type": "Expression"
+						},
+						"fileSystem": {
+							"value": "@dataset().container_name",
+							"type": "Expression"
+						}
+					},
+					"compressionCodec": "snappy"
+				},
+				"schema": []
+			},
+			"dependsOn": []
+		}
+	]
+}
