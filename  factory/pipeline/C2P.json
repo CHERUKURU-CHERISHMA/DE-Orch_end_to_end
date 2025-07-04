@@ -82,43 +82,6 @@
 							}
 						},
 						{
-							"name": "C2P",
-							"type": "DatabricksNotebook",
-							"dependsOn": [
-								{
-									"activity": "start_time",
-									"dependencyConditions": [
-										"Succeeded"
-									]
-								}
-							],
-							"policy": {
-								"timeout": "0.12:00:00",
-								"retry": 0,
-								"retryIntervalInSeconds": 30,
-								"secureOutput": false,
-								"secureInput": false
-							},
-							"userProperties": [],
-							"typeProperties": {
-								"notebookPath": "/Users/21691a0134@mits.ac.in/Transformstion_logic",
-								"baseParameters": {
-									"process_path": {
-										"value": "@item().processed_path",
-										"type": "Expression"
-									},
-									"Mode": {
-										"value": "@item().Mode",
-										"type": "Expression"
-									}
-								}
-							},
-							"linkedServiceName": {
-								"referenceName": "Databrickslink",
-								"type": "LinkedServiceReference"
-							}
-						},
-						{
 							"name": "end_time",
 							"type": "DatabricksNotebook",
 							"dependsOn": [
@@ -159,6 +122,47 @@
 									},
 									"start_time": {
 										"value": "@activity('start_time').output.runOutput.result",
+										"type": "Expression"
+									}
+								}
+							},
+							"linkedServiceName": {
+								"referenceName": "Databrickslink",
+								"type": "LinkedServiceReference"
+							}
+						},
+						{
+							"name": "C2P",
+							"type": "DatabricksNotebook",
+							"dependsOn": [
+								{
+									"activity": "start_time",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								}
+							],
+							"policy": {
+								"timeout": "0.12:00:00",
+								"retry": 0,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"notebookPath": "/Users/21691a0134@mits.ac.in/ETLdata",
+								"baseParameters": {
+									"process_name": {
+										"value": "C2P",
+										"type": "Expression"
+									},
+									"Mode": {
+										"value": "@item().Mode",
+										"type": "Expression"
+									},
+									"processed_path": {
+										"value": "@item().processed_path",
 										"type": "Expression"
 									}
 								}
